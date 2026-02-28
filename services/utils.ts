@@ -54,29 +54,7 @@ export const preprocessMessageContent = (text: string): string => {
     // Rejoin parts
     let processed = parts.join('');
 
-    // 4. Custom Tag Fencing (Runs globally as XML tags often span lines and aren't code blocks)
-    // Regex Explanation:
-    // <([a-zA-Z][\w-]*)   -> Match opening tag start (e.g., <thought)
-    // \b[^>]*>            -> Match attributes and closing bracket of opening tag
-    // ([\s\S]*?)          -> Match content (non-greedy, including newlines)
-    // <\/\1>              -> Match corresponding closing tag
-    processed = processed.replace(/<([a-zA-Z][\w-]*)\b[^>]*>([\s\S]*?)<\/\1>/g, (match, tagName) => {
-        // If it's standard HTML, leave it alone to render normally
-        if (STANDARD_HTML_TAGS.has(tagName.toLowerCase())) {
-            return match;
-        }
-        
-        // If it's a custom tag:
-        // Check if it's multiline. If yes, use block code fences (```xml ... ```)
-        // If single line, use inline code fences (` ... `)
-        if (match.includes('\n')) {
-            // Ensure distinct block separation
-            return `\n\`\`\`xml\n${match}\n\`\`\`\n`;
-        } else {
-            return ` \`${match}\` `;
-        }
-    });
-
+    // Custom Tag Fencing removed to prevent double-formatting with AI outputs.
     return processed;
 };
 

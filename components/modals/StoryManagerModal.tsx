@@ -117,7 +117,7 @@ const ChapterEditor: React.FC<{
 const StoryManagerModal: React.FC = memo(() => {
     const { isStoryManagerModalOpen, closeStoryManagerModal } = useSettingsUI();
     const { reorderChapters } = useArchiverStore();
-    const { requestDeleteChapterConfirmation } = useConfirmationUI(); // ADDED
+    const { requestDeleteChapterConfirmation, requestDeleteAllChaptersConfirmation } = useConfirmationUI(); // ADDED
     
     const { currentChatSession } = useActiveChatStore();
     const [localChapters, setLocalChapters] = useState<ArchivedChapter[]>([]);
@@ -190,7 +190,14 @@ const StoryManagerModal: React.FC = memo(() => {
                     <p>Manage the story context injected into the AI. Chapters listed here are sent with every message.</p>
                 </div>
 
-                <div className="flex justify-end mb-2">
+                <div className="flex justify-between items-center mb-2">
+                    <button 
+                        onClick={requestDeleteAllChaptersConfirmation} 
+                        disabled={localChapters.length === 0}
+                        className="flex items-center px-2 py-1 text-xs font-bold text-red-400 bg-red-500/10 rounded hover:bg-red-500/20 disabled:opacity-50"
+                    >
+                        <TrashIcon className="w-3.5 h-3.5 mr-1" /> Delete All
+                    </button>
                     <button onClick={handleAddManual} className="flex items-center px-2 py-1 text-xs font-bold text-indigo-300 bg-indigo-500/10 rounded hover:bg-indigo-500/20">
                         <PlusIcon className="w-3.5 h-3.5 mr-1" /> Add Manual Chapter
                     </button>

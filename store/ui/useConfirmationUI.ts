@@ -20,6 +20,8 @@ interface ConfirmationUIState {
   isDeleteChapterConfirmationOpen: boolean;
   deleteChapterIndex: number | null;
 
+  isDeleteAllChaptersConfirmationOpen: boolean;
+
   // Actions
   requestDeleteConfirmation: (target: { sessionId: string; messageId: string }) => void;
   cancelDeleteConfirmation: () => void;
@@ -38,6 +40,9 @@ interface ConfirmationUIState {
 
   requestDeleteChapterConfirmation: (index: number) => void;
   cancelDeleteChapterConfirmation: () => void;
+
+  requestDeleteAllChaptersConfirmation: () => void;
+  cancelDeleteAllChaptersConfirmation: () => void;
 }
 
 export const useConfirmationUI = create<ConfirmationUIState>((set) => ({
@@ -53,6 +58,7 @@ export const useConfirmationUI = create<ConfirmationUIState>((set) => ({
   deletePromptButtonTarget: null,
   isDeleteChapterConfirmationOpen: false,
   deleteChapterIndex: null,
+  isDeleteAllChaptersConfirmationOpen: false,
 
   requestDeleteConfirmation: (target) => {
     set({ deleteTarget: target, isDeleteConfirmationOpen: true });
@@ -94,5 +100,12 @@ export const useConfirmationUI = create<ConfirmationUIState>((set) => ({
   },
   cancelDeleteChapterConfirmation: () => {
     set({ isDeleteChapterConfirmationOpen: false, deleteChapterIndex: null });
+  },
+
+  requestDeleteAllChaptersConfirmation: () => {
+    set({ isDeleteAllChaptersConfirmationOpen: true });
+  },
+  cancelDeleteAllChaptersConfirmation: () => {
+    set({ isDeleteAllChaptersConfirmationOpen: false });
   },
 }));

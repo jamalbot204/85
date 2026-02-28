@@ -72,7 +72,7 @@ const ModalManager: React.FC<ModalManagerProps> = memo(({ onScrollToMessage }) =
   const { setGithubRepo } = useGithubStore();
   const { isSelectionModeActive } = useSelectionStore();
   const { selectedChatIds } = useHistorySelectionStore();
-  const { deleteChapter } = useArchiverStore();
+  const { deleteChapter, deleteAllChapters } = useArchiverStore();
 
   const handleConfirmDeletion = useCallback(() => {
     if (confirmationUI.deleteTarget) {
@@ -113,6 +113,11 @@ const ModalManager: React.FC<ModalManagerProps> = memo(({ onScrollToMessage }) =
     }
     confirmationUI.cancelDeleteChapterConfirmation();
   }, [confirmationUI.deleteChapterIndex, deleteChapter, confirmationUI.cancelDeleteChapterConfirmation]);
+
+  const handleConfirmDeleteAllChapters = useCallback(() => {
+    deleteAllChapters();
+    confirmationUI.cancelDeleteAllChaptersConfirmation();
+  }, [deleteAllChapters, confirmationUI.cancelDeleteAllChaptersConfirmation]);
 
   const handleGoToAttachmentInChat = useCallback((messageId: string) => {
     settingsUI.closeChatAttachmentsModal();
@@ -257,6 +262,19 @@ const ModalManager: React.FC<ModalManagerProps> = memo(({ onScrollToMessage }) =
                 cancelText={t.cancel}
                 onConfirm={handleConfirmChapterDeletion}
                 onCancel={confirmationUI.cancelDeleteChapterConfirmation}
+                isDestructive={true}
+            />
+        )}
+
+        {confirmationUI.isDeleteAllChaptersConfirmationOpen && (
+            <ConfirmationModal
+                isOpen={confirmationUI.isDeleteAllChaptersConfirmationOpen}
+                title="Delete All Chapters"
+                message="Are you sure you want to delete ALL archived chapters? This cannot be undone."
+                confirmText={t.delete}
+                cancelText={t.cancel}
+                onConfirm={handleConfirmDeleteAllChapters}
+                onCancel={confirmationUI.cancelDeleteAllChaptersConfirmation}
                 isDestructive={true}
             />
         )}

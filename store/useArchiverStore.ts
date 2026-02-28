@@ -57,6 +57,7 @@ interface ArchiverState {
   saveGeneratedChaptersToStory: () => Promise<void>;
   updateChapter: (index: number, chapter: ArchivedChapter) => Promise<void>;
   deleteChapter: (index: number) => Promise<void>;
+  deleteAllChapters: () => Promise<void>;
   reorderChapters: (newChapters: ArchivedChapter[]) => Promise<void>;
 }
 
@@ -573,6 +574,16 @@ export const useArchiverStore = create<ArchiverState>((set, get) => ({
           await updateCurrentChatSession(s => s ? ({ ...s, settings: newSettings }) : null);
           await updateSettings(currentChatSession.id, newSettings);
       }
+  },
+
+  deleteAllChapters: async () => {
+      const { currentChatSession, updateCurrentChatSession } = useActiveChatStore.getState();
+      const { updateSettings } = useDataStore.getState();
+      if (!currentChatSession) return;
+
+      const newSettings = { ...currentChatSession.settings, archivedChapters: [] };
+      await updateCurrentChatSession(s => s ? ({ ...s, settings: newSettings }) : null);
+      await updateSettings(currentChatSession.id, newSettings);
   },
 
   reorderChapters: async (newChapters: ArchivedChapter[]) => {
