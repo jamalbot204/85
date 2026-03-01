@@ -19,6 +19,7 @@ const LogEntryComponent: React.FC<LogEntryProps> = ({ log }) => {
   const isMemoryManager = log.characterName?.includes('Memory Manager');
   const isShadowMode = log.characterName?.includes('Shadow Mode');
   const isToolTrace = log.requestType === 'tool.trace';
+  const isCacheCreate = log.requestType === 'cachedContents.create';
 
   let borderColor = "border-[var(--aurora-border)]";
   let textColor = "text-gray-400";
@@ -36,6 +37,10 @@ const LogEntryComponent: React.FC<LogEntryProps> = ({ log }) => {
       borderColor = "border-amber-900/50";
       textColor = "text-amber-300";
       badgeColor = "bg-amber-600/50 text-amber-100";
+  } else if (isCacheCreate) {
+      borderColor = "border-teal-900/50";
+      textColor = "text-teal-300";
+      badgeColor = "bg-teal-600/50 text-teal-100";
   } else {
       if (log.requestType === 'chat.create') badgeColor = 'bg-blue-600/50 text-blue-200';
       else if (log.requestType === 'chat.sendMessage') badgeColor = 'bg-green-600/50 text-green-200';
@@ -47,6 +52,7 @@ const LogEntryComponent: React.FC<LogEntryProps> = ({ log }) => {
   const containerBg = isMemoryManager ? "bg-cyan-950/10 hover:bg-cyan-950/20" : 
                       isShadowMode ? "bg-emerald-950/10 hover:bg-emerald-950/20" : 
                       isToolTrace ? "bg-amber-950/10 hover:bg-amber-950/20" :
+                      isCacheCreate ? "bg-teal-950/10 hover:bg-teal-950/20" :
                       "hover:bg-white/5";
 
   const IconToUse = isToolTrace ? WrenchScrewdriverIcon : (isExpanded ? ChevronDownIcon : ChevronRightIcon);

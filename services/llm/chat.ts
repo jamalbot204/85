@@ -1,6 +1,6 @@
 
 import { Content, GenerateContentResponse, Part, SafetySetting as GeminiSafetySettingFromSDK, GenerationConfig as GeminiGenerationConfigSDK } from "@google/genai";
-import { ChatMessage, ChatMessageRole, GeminiSettings, GroundingChunk, UserMessageInput, LogApiRequestCallback, FullResponseData, AICharacter, LoggedGeminiGenerationConfig, ApiRequestPayload, ToolInvocation } from '../../types.ts';
+import { ChatSession, ChatMessage, ChatMessageRole, GeminiSettings, GroundingChunk, UserMessageInput, LogApiRequestCallback, FullResponseData, AICharacter, LoggedGeminiGenerationConfig, ApiRequestPayload, ToolInvocation } from '../../types.ts';
 import { createAiInstance } from './config.ts';
 import { mapMessagesToGeminiHistoryInternal, mapMessagesToCharacterPerspectiveHistory } from './history.ts';
 import { formatGeminiError } from './utils.ts';
@@ -30,6 +30,8 @@ export interface GeminiRequestOptions {
   allAiCharactersInSession?: AICharacter[];
   thoughtInjectionContext?: string;
   generatingMessageId?: string; 
+  sessionToUpdate?: ChatSession;
+  onCacheUpdate?: (cacheInfo: { id: string; expireTime: number; fingerprint: string; }) => void;
 }
 
 // Helper to handle streaming vs regular generation
@@ -311,26 +313,65 @@ ${combinedSettings.memoryBoxContent}
           : profileContent;
   }
 
-  // 3. Time Bridge (Direct Injection)
-  if (combinedSettings.enableTimeBridge ?? true) {
-      const now = new Date();
-      const timeStr = now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
-      const dateStr = now.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-      const timeContext = `[System Note: Current Real-world Time: ${timeStr}, Date: ${dateStr}]`;
-      
-      finalSystemInstructionText = finalSystemInstructionText 
-          ? `${finalSystemInstructionText}\n\n${timeContext}`
-          : timeContext;
-  }
-
   // 4. Story Manager Injection
   if (combinedSettings.archivedChapters && combinedSettings.archivedChapters.length > 0) {
       const storyContext = formatChaptersToMarkdown(combinedSettings.archivedChapters);
-      // Append to the end of system instruction to ensure it overrides defaults if necessary, 
-      // but keeps original persona intact.
-      finalSystemInstructionText = finalSystemInstructionText 
-          ? `${finalSystemInstructionText}\n\n${storyContext}`
-          : storyContext;
+      const currentFingerprint = `${model}${finalSystemInstructionText}${JSON.stringify(configForChatCreate.tools || [])}${storyContext.length}`;
+
+      if (
+          options.sessionToUpdate?.cacheInfo &&
+          options.sessionToUpdate.cacheInfo.fingerprint === currentFingerprint &&
+          options.sessionToUpdate.cacheInfo.expireTime > Date.now() + 300000
+      ) {
+          configForChatCreate.cachedContent = options.sessionToUpdate.cacheInfo.id;
+      } else {
+          try {
+              const cachePayload: any = {
+                  model: model,
+                  config: {
+                      contents: [{ role: 'user', parts: [{ text: storyContext }] }],
+                      ttl: '3600s'
+                  }
+              };
+              if (configForChatCreate.systemInstruction) {
+                  cachePayload.config.systemInstruction = configForChatCreate.systemInstruction;
+              }
+              if (configForChatCreate.tools && configForChatCreate.tools.length > 0) {
+                  cachePayload.config.tools = configForChatCreate.tools;
+              }
+              const cache = await ai.caches.create(cachePayload);
+
+              if (logApiRequestCallback) {
+                  logApiRequestCallback({
+                      requestType: 'cachedContents.create',
+                      payload: {
+                          model,
+                          toolsLength: configForChatCreate.tools?.length || 0,
+                          instructionLength: finalSystemInstructionText?.length || 0,
+                          textLength: storyContext.length
+                      } as any,
+                      characterName: characterNameForLogging,
+                      apiSessionId: cacheKeyForSDKInstance
+                  });
+              }
+
+              const expireTime = Date.now() + 3600 * 1000;
+              if (options.onCacheUpdate) {
+                  options.onCacheUpdate({
+                      id: cache.name,
+                      expireTime,
+                      fingerprint: currentFingerprint
+                  });
+              }
+
+              configForChatCreate.cachedContent = cache.name;
+          } catch (error) {
+              console.warn("Context Caching failed (likely < 32k tokens). Falling back to inline injection.", error);
+              finalSystemInstructionText = finalSystemInstructionText 
+                  ? `${finalSystemInstructionText}\n\n${storyContext}`
+                  : storyContext;
+          }
+      }
   }
 
   let activeMemoryToolName: string | undefined = undefined;
@@ -437,6 +478,12 @@ ${thoughtInjectionContext}
               },
           };
       }
+  }
+
+  if (configForChatCreate.cachedContent) {
+      delete configForChatCreate.systemInstruction;
+      delete configForChatCreate.tools;
+      delete configForChatCreate.toolConfig;
   }
 
   fullContents.push({ role: 'user', parts: messageParts });

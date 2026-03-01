@@ -39,7 +39,7 @@ export interface ApiRequestPayload {
 export interface ApiRequestLog {
   id: string;
   timestamp: Date;
-  requestType: 'chat.create' | 'chat.sendMessage' | 'models.generateContent' | 'files.uploadFile' | 'files.getFile' | 'files.delete' | 'tts.generateSpeech' | 'tool.trace'; 
+  requestType: 'chat.create' | 'chat.sendMessage' | 'models.generateContent' | 'files.uploadFile' | 'files.getFile' | 'files.delete' | 'tts.generateSpeech' | 'tool.trace' | 'cachedContents.create'; 
   payload: ApiRequestPayload; 
   characterName?: string;
   apiSessionId?: string; 

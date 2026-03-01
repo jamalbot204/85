@@ -530,7 +530,15 @@ Time passed since last interaction: ${timePassedString}.
                     signal: geminiRefs.abortController.signal,
                     settingsOverride: settingsOverrideForAPICall,
                     allAiCharactersInSession: currentChatSession.aiCharacters,
-                    generatingMessageId: modelMessageId 
+                    generatingMessageId: modelMessageId,
+                    sessionToUpdate: sessionToUpdate,
+                    onCacheUpdate: (newCacheInfo) => {
+                        useActiveChatStore.getState().updateCurrentChatSession(s => s ? ({ ...s, cacheInfo: newCacheInfo }) : null);
+                        const updatedSession = useActiveChatStore.getState().currentChatSession;
+                        if (updatedSession) {
+                            dbService.addOrUpdateChatSession(updatedSession);
+                        }
+                    }
                 } as any);
             } catch (e: any) {
                 await handleFinalResponseError(e.message, false);

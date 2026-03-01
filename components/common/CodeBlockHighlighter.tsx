@@ -38,7 +38,7 @@ const CodeBlockHighlighter: React.FC<CodeBlockHighlighterProps> = memo(({ langua
         <div className="mb-2 text-[10px] text-yellow-500/80 uppercase tracking-widest font-bold flex items-center border-b border-yellow-500/10 pb-1">
           <span>⚠️ Highlighting Disabled (Large Content)</span>
         </div>
-        <pre className="m-0 whitespace-pre">{codeString}</pre>
+        <pre className="m-0 whitespace-pre-wrap break-words">{codeString}</pre>
       </div>
     );
   }
@@ -48,6 +48,7 @@ const CodeBlockHighlighter: React.FC<CodeBlockHighlighterProps> = memo(({ langua
       style={vscDarkPlus}
       language={language}
       PreTag="div"
+      wrapLongLines={true}
       customStyle={{
         margin: 0,
         padding: '1rem',

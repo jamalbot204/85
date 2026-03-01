@@ -89,7 +89,7 @@ const CodeBlock: React.FC<React.PropsWithChildren<{ inline?: boolean; className?
                 <CodeBlockHighlighter language={lang} codeString={codeString} />
             </Suspense>
         ) : (
-            <pre className="bg-transparent text-[var(--aurora-text-primary)] p-4 text-sm font-mono overflow-x-auto m-0">
+            <pre className="bg-transparent text-[var(--aurora-text-primary)] p-4 text-sm font-mono whitespace-pre-wrap break-words m-0">
             <code>{codeString}</code>
             </pre>
         )}

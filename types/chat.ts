@@ -59,4 +59,5 @@ export interface ChatSession {
     contextText: string;
   } | null;
   partnerRole?: string; // ADDED: Classification of the other party (e.g., "Father", "Client")
+  cacheInfo?: { id: string; expireTime: number; fingerprint: string; };
 }
